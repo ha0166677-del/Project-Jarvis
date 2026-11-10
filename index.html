@@ -11,7 +11,6 @@
             --stark-bg: #050b14;
             --stark-panel: rgba(10, 25, 45, 0.85);
             --stark-border: rgba(0, 240, 255, 0.4);
-            --stark-alert: #ff3366;
         }
 
         * {
@@ -28,9 +27,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start;
             padding: 20px;
-            overflow-x: hidden;
         }
 
         .hud-header {
@@ -55,7 +52,6 @@
             margin-top: 5px;
         }
 
-        /* Arc Reactor Animation */
         .reactor-container {
             position: relative;
             width: 120px;
@@ -84,17 +80,9 @@
             animation: spin 10s linear infinite;
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes pulse { 0% { transform: scale(0.95); opacity: 0.8; } 100% { transform: scale(1.05); opacity: 1; } }
 
-        @keyframes pulse {
-            0% { transform: scale(0.95); opacity: 0.8; }
-            100% { transform: scale(1.05); opacity: 1; }
-        }
-
-        /* Main Panel */
         .hud-panel {
             background: var(--stark-panel);
             border: 1px solid var(--stark-border);
@@ -110,7 +98,6 @@
             display: flex;
             gap: 10px;
             margin-bottom: 15px;
-            flex-wrap: wrap;
         }
 
         input[type="text"] {
@@ -124,10 +111,6 @@
             outline: none;
         }
 
-        input[type="text"]::placeholder {
-            color: rgba(0, 240, 255, 0.4);
-        }
-
         button {
             padding: 12px 20px;
             background: rgba(0, 240, 255, 0.1);
@@ -136,7 +119,6 @@
             border-radius: 5px;
             cursor: pointer;
             font-weight: bold;
-            transition: all 0.2s ease;
         }
 
         button:hover {
@@ -151,13 +133,6 @@
             border-color: var(--stark-gold);
         }
 
-        .mic-btn:hover {
-            background: var(--stark-gold);
-            color: var(--stark-bg);
-            box-shadow: 0 0 15px var(--stark-gold);
-        }
-
-        /* HUD Screen Output */
         .output-screen {
             background: rgba(0, 0, 0, 0.7);
             border: 1px dashed var(--stark-border);
@@ -169,7 +144,6 @@
             font-size: 0.95rem;
             color: #ffffff;
             margin-bottom: 15px;
-            word-break: break-word;
         }
 
         .section-title {
@@ -187,7 +161,7 @@
             text-align: left;
             max-height: 100px;
             overflow-y: auto;
-            padding: 5px;
+            padding: 8px;
             background: rgba(0,0,0,0.3);
             border-radius: 4px;
         }
@@ -207,34 +181,37 @@
 
     <div class="hud-panel">
         <div class="input-group">
-            <input type="text" id="userInput" placeholder="Issue command, e.g., 'open youtube' or 'remember my goal is...'">
+            <input type="text" id="userInput" placeholder="Speak or type anything naturally...">
             <button onclick="sendCommand()">SEND</button>
             <button class="mic-btn" onclick="startListening()">🎤 SPEAK</button>
         </div>
 
         <div class="section-title">HUD Output Log</div>
-        <div id="responseBox" class="output-screen">Initializing systems... Online, Sir.</div>
+        <div id="responseBox" class="output-screen">Systems calibrated, Sir. Ready for input.</div>
 
         <div class="section-title">Active Memory & Goals</div>
         <div id="memoryDisplay" class="memory-box">No active data logs stored yet.</div>
     </div>
 
     <script>
-        // Load memory from browser storage on startup
         let jarvisMemory = JSON.parse(localStorage.getItem('jarvis_memory')) || [];
         updateMemoryUI();
 
+        // Optimized Voice Settings
         function speak(text) {
             const speech = new SpeechSynthesisUtterance(text);
             speech.lang = "en-GB";
-            speech.rate = 0.95;
-            speech.pitch = 0.85;
-            speech.volume = 1;
+            speech.rate = 0.98; // Natural speech speed
+            speech.pitch = 0.90; // Natural deeper pitch
 
             const voices = window.speechSynthesis.getVoices();
-            const daniel = voices.find(voice => voice.name.toLowerCase().includes("daniel"));
-            if (daniel) {
-                speech.voice = daniel;
+            // Searches for high quality male British or natural voices
+            const preferredVoice = voices.find(v => 
+                (v.name.includes("Daniel") || v.name.includes("Arthur") || v.name.includes("Oliver") || v.name.includes("Male")) && v.lang.includes("en")
+            );
+
+            if (preferredVoice) {
+                speech.voice = preferredVoice;
             }
 
             window.speechSynthesis.cancel();
@@ -242,7 +219,6 @@
         }
 
         function respond(message) {
-            document.getElementById("responseBoxinnerText") // safe lookup
             document.getElementById("responseBox").innerText = `> ${message}`;
         }
 
@@ -255,67 +231,84 @@
             }
         }
 
+        // Natural Language Command Processing
         function processCommand(rawCommand) {
             const command = rawCommand.toLowerCase().trim();
             document.getElementById("userInput").value = rawCommand;
 
-            if (command.includes("hello") || command.includes("jarvis")) {
-                const reply = "At your service, Sir. All systems are operating at peak efficiency.";
+            // 1. Web Navigation Intent (detects site names or "open / launch / take me to")
+            const siteMatch = command.match(/(?:open|launch|go to|take me to|show me)\s+([a-z0-9\s]+)/i);
+            if (siteMatch || command.includes("youtube") || command.includes("google") || command.includes("github")) {
+                let targetSite = siteMatch ? siteMatch[1].trim() : "";
+                if (command.includes("youtube")) targetSite = "youtube";
+                else if (command.includes("google")) targetSite = "google";
+                else if (command.includes("github")) targetSite = "github";
+
+                const cleanSite = targetSite.replace(/\s+/g, "");
+                const reply = `Opening ${targetSite} for you now, Sir.`;
                 respond(reply);
                 speak(reply);
+                window.open(`https://www.${cleanSite}.com`, "_blank");
+                return;
             }
-            else if (command.includes("youtube")) {
-                const reply = "Opening YouTube interface now, Sir.";
-                respond(reply);
-                speak(reply);
-                window.open("https://www.youtube.com", "_blank");
+
+            // 2. Memory / Goal Storing Intent
+            if (command.includes("remember") || command.includes("my goal") || command.includes("save this") || command.includes("dont forget") || command.includes("don't forget")) {
+                const memoryContent = rawCommand.replace(/(?:remember|my goal is to|save this|dont forget that|don't forget that|to)\s*/i, "").trim();
+                if (memoryContent) {
+                    jarvisMemory.push(memoryContent);
+                    localStorage.setItem('jarvis_memory', JSON.stringify(jarvisMemory));
+                    updateMemoryUI();
+                    const reply = `Logged to memory: "${memoryContent}".`;
+                    respond(reply);
+                    speak("I have noted that down in memory, Sir.");
+                    return;
+                }
             }
-            else if (command.includes("google")) {
-                const reply = "Accessing Google network.";
-                respond(reply);
-                speak(reply);
-                window.open("https://www.google.com", "_blank");
-            }
-            else if (command.startsWith("open ")) {
-                const siteName = command.replace("open ", "").trim();
-                const reply = `Establishing secure connection to ${siteName}, Sir.`;
-                respond(reply);
-                speak(reply);
-                window.open(`https://www.${siteName}.com`, "_blank");
-            }
-            else if (command.startsWith("remember ") || command.startsWith("goal ")) {
-                const dataToStore = rawCommand.replace(/^(remember|goal)\s*/i, "").trim();
-                jarvisMemory.push(dataToStore);
-                localStorage.setItem('jarvis_memory', JSON.stringify(jarvisMemory));
-                updateMemoryUI();
-                const reply = `Logged into my permanent memory banks, Sir: "${dataToStore}"`;
-                respond(reply);
-                speak("Logged to memory banks, Sir.");
-            }
-            else if (command.includes("what do you remember") || command.includes("show goals") || command.includes("memory")) {
+
+            // 3. Memory Recall Intent
+            if (command.includes("memory") || command.includes("goals") || command.includes("what do you know") || command.includes("what did i tell you")) {
                 if (jarvisMemory.length === 0) {
-                    const reply = "My memory banks are currently empty, Sir.";
+                    const reply = "Memory banks are currently clear, Sir.";
                     respond(reply);
                     speak(reply);
                 } else {
-                    const reply = `Here are your stored logs: ${jarvisMemory.join(', ')}`;
+                    const reply = `Stored logs: ${jarvisMemory.join(', ')}`;
                     respond(reply);
-                    speak("Recalling your active goals and logs now.");
+                    speak("Displaying your stored goals and notes now, Sir.");
                 }
+                return;
             }
-            else if (command.includes("clear memory") || command.includes("reset memory")) {
+
+            // 4. Clear Memory Intent
+            if (command.includes("clear memory") || command.includes("reset memory") || command.includes("delete goals")) {
                 jarvisMemory = [];
                 localStorage.removeItem('jarvis_memory');
                 updateMemoryUI();
-                const reply = "Memory banks wiped clean, Sir.";
+                const reply = "Memory logs reset, Sir.";
                 respond(reply);
                 speak(reply);
+                return;
             }
-            else {
-                const reply = `Command received: "${rawCommand}". Executing standard protocol.`;
+
+            // 5. Conversational Responses (Rotates natural responses)
+            const greetings = ["how are you", "hello", "hi jarvis", "hey jarvis", "sup", "what's up"];
+            if (greetings.some(g => command.includes(g))) {
+                const responses = [
+                    "Always a pleasure, Sir. How can I help you today?",
+                    "All core systems operational. What are we working on?",
+                    "Standing by, Sir. Ready for your instructions."
+                ];
+                const reply = responses[Math.floor(Math.random() * responses.length)];
                 respond(reply);
-                speak("Processing command.");
+                speak(reply);
+                return;
             }
+
+            // Default conversational fallback
+            const fallbackReply = `Processing: "${rawCommand}". I've logged your input, Sir.`;
+            respond(fallbackReply);
+            speak("Understood, Sir.");
         }
 
         function sendCommand() {
@@ -335,7 +328,7 @@
             const recognition = new SpeechRecognition();
             recognition.lang = "en-US";
             
-            respond("Listening for voice input...");
+            respond("Listening for voice command...");
             speak("Listening");
 
             recognition.onresult = function(event) {
@@ -344,7 +337,7 @@
             };
 
             recognition.onerror = function() {
-                respond("Microphone error or access denied.");
+                respond("Microphone input error.");
             };
 
             recognition.start();
