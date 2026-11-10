@@ -137,13 +137,14 @@
             background: rgba(0, 0, 0, 0.7);
             border: 1px dashed var(--stark-border);
             padding: 15px;
-            min-height: 80px;
+            min-height: 90px;
             border-radius: 5px;
             text-align: left;
             font-family: monospace;
             font-size: 0.95rem;
             color: #ffffff;
             margin-bottom: 15px;
+            white-space: pre-wrap;
         }
 
         .section-title {
@@ -171,7 +172,7 @@
 
     <div class="hud-header">
         <h1>J.A.R.V.I.S.</h1>
-        <p>JUST A RATHER VERY INTELLIGENT SYSTEM // STARK PROTOCOL</p>
+        <p>JUST A RATHER VERY INTELLIGENT SYSTEM // GEMINI PROTOCOL</p>
     </div>
 
     <div class="reactor-container">
@@ -181,31 +182,32 @@
 
     <div class="hud-panel">
         <div class="input-group">
-            <input type="text" id="userInput" placeholder="Speak or type anything naturally...">
+            <input type="text" id="userInput" placeholder="Ask Gemini-JARVIS anything..." onkeydown="if(event.key === 'Enter') sendCommand()">
             <button onclick="sendCommand()">SEND</button>
             <button class="mic-btn" onclick="startListening()">🎤 SPEAK</button>
         </div>
 
         <div class="section-title">HUD Output Log</div>
-        <div id="responseBox" class="output-screen">Systems calibrated, Sir. Ready for input.</div>
+        <div id="responseBox" class="output-screen">Neural link established. Awaiting input, Sir.</div>
 
-        <div class="section-title">Active Memory & Goals</div>
-        <div id="memoryDisplay" class="memory-box">No active data logs stored yet.</div>
+        <div class="section-title">Local Memory & Goals</div>
+        <div id="memoryDisplay" class="memory-box">No active local goals logged.</div>
     </div>
 
     <script>
+        // PASTE YOUR GEMINI API KEY INSIDE THE QUOTES BELOW:
+        const GEMINI_API_KEY = "AQ.Ab8RN6Ln6sWkHdnVjAF_N7kTBMzp6jj-sj_BqlNknQ5W0bV3fg";
+
         let jarvisMemory = JSON.parse(localStorage.getItem('jarvis_memory')) || [];
         updateMemoryUI();
 
-        // Optimized Voice Settings
         function speak(text) {
             const speech = new SpeechSynthesisUtterance(text);
             speech.lang = "en-GB";
-            speech.rate = 0.98; // Natural speech speed
-            speech.pitch = 0.90; // Natural deeper pitch
+            speech.rate = 0.98;
+            speech.pitch = 0.90;
 
             const voices = window.speechSynthesis.getVoices();
-            // Searches for high quality male British or natural voices
             const preferredVoice = voices.find(v => 
                 (v.name.includes("Daniel") || v.name.includes("Arthur") || v.name.includes("Oliver") || v.name.includes("Male")) && v.lang.includes("en")
             );
@@ -225,96 +227,93 @@
         function updateMemoryUI() {
             const memBox = document.getElementById("memoryDisplay");
             if (jarvisMemory.length === 0) {
-                memBox.innerText = "No active data logs stored yet.";
+                memBox.innerText = "No active local goals logged.";
             } else {
                 memBox.innerHTML = jarvisMemory.map(item => `• ${item}`).join('<br>');
             }
         }
 
-        // Natural Language Command Processing
+        // Send prompt to Gemini API with JARVIS Persona
+        async function queryGemini(userPrompt) {
+            if (GEMINI_API_KEY === "YOUR_API_KEY_HERE" || !GEMINI_API_KEY) {
+                respond("Error: Please insert your Google Gemini API key into the code.");
+                speak("Sir, you forgot to enter your API key in the script.");
+                return;
+            }
+
+            respond("Consulting neural network...");
+
+            // Built-in Jarvis persona prompt
+            const systemPrompt = "You are J.A.R.V.I.S., Tony Stark's witty, polite, highly intelligent British AI assistant. Always address the user as Sir. Keep your answers relatively short, sharp, and natural so they sound great spoken out loud.";
+            const fullPrompt = `${systemPrompt}\n\nUser Goals/Context Stored: ${jarvisMemory.join(', ')}\n\nUser says: ${userPrompt}`;
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: fullPrompt }] }]
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.candidates && data.candidates[0].content.parts[0].text) {
+                    let aiReply = data.candidates[0].content.parts[0].text.trim();
+                    respond(aiReply);
+                    speak(aiReply);
+                } else {
+                    respond("Neural link returned an empty response, Sir.");
+                    speak("I encountered a glitch, Sir.");
+                }
+            } catch (error) {
+                respond("Network connection error to Gemini servers.");
+                speak("Connection error, Sir.");
+            }
+        }
+
         function processCommand(rawCommand) {
             const command = rawCommand.toLowerCase().trim();
             document.getElementById("userInput").value = rawCommand;
 
-            // 1. Web Navigation Intent (detects site names or "open / launch / take me to")
-            const siteMatch = command.match(/(?:open|launch|go to|take me to|show me)\s+([a-z0-9\s]+)/i);
-            if (siteMatch || command.includes("youtube") || command.includes("google") || command.includes("github")) {
-                let targetSite = siteMatch ? siteMatch[1].trim() : "";
+            // Shortcut to open sites natively
+            if (command.startsWith("open ") || command.includes("youtube") || command.includes("google")) {
+                let targetSite = "google";
                 if (command.includes("youtube")) targetSite = "youtube";
                 else if (command.includes("google")) targetSite = "google";
-                else if (command.includes("github")) targetSite = "github";
+                else {
+                    let siteMatch = command.match(/(?:open|launch|go to)\s+([a-z0-9\s]+)/i);
+                    if (siteMatch) targetSite = siteMatch[1].trim().replace(/\s+/g, "");
+                }
 
-                const cleanSite = targetSite.replace(/\s+/g, "");
-                const reply = `Opening ${targetSite} for you now, Sir.`;
+                const reply = `Opening ${targetSite} for you right away, Sir.`;
                 respond(reply);
                 speak(reply);
-                window.open(`https://www.${cleanSite}.com`, "_blank");
+                window.open(`https://www.${targetSite}.com`, "_blank");
                 return;
             }
 
-            // 2. Memory / Goal Storing Intent
-            if (command.includes("remember") || command.includes("my goal") || command.includes("save this") || command.includes("dont forget") || command.includes("don't forget")) {
-                const memoryContent = rawCommand.replace(/(?:remember|my goal is to|save this|dont forget that|don't forget that|to)\s*/i, "").trim();
-                if (memoryContent) {
-                    jarvisMemory.push(memoryContent);
-                    localStorage.setItem('jarvis_memory', JSON.stringify(jarvisMemory));
-                    updateMemoryUI();
-                    const reply = `Logged to memory: "${memoryContent}".`;
-                    respond(reply);
-                    speak("I have noted that down in memory, Sir.");
-                    return;
-                }
-            }
-
-            // 3. Memory Recall Intent
-            if (command.includes("memory") || command.includes("goals") || command.includes("what do you know") || command.includes("what did i tell you")) {
-                if (jarvisMemory.length === 0) {
-                    const reply = "Memory banks are currently clear, Sir.";
-                    respond(reply);
-                    speak(reply);
-                } else {
-                    const reply = `Stored logs: ${jarvisMemory.join(', ')}`;
-                    respond(reply);
-                    speak("Displaying your stored goals and notes now, Sir.");
-                }
-                return;
-            }
-
-            // 4. Clear Memory Intent
-            if (command.includes("clear memory") || command.includes("reset memory") || command.includes("delete goals")) {
-                jarvisMemory = [];
-                localStorage.removeItem('jarvis_memory');
+            // Shortcut to save local goals
+            if (command.startsWith("remember ") || command.startsWith("goal ")) {
+                const dataToStore = rawCommand.replace(/^(remember|goal)\s*/i, "").trim();
+                jarvisMemory.push(dataToStore);
+                localStorage.setItem('jarvis_memory', JSON.stringify(jarvisMemory));
                 updateMemoryUI();
-                const reply = "Memory logs reset, Sir.";
+                const reply = `Goal logged locally: "${dataToStore}"`;
                 respond(reply);
-                speak(reply);
+                speak("I have noted that into your local goals, Sir.");
                 return;
             }
 
-            // 5. Conversational Responses (Rotates natural responses)
-            const greetings = ["how are you", "hello", "hi jarvis", "hey jarvis", "sup", "what's up"];
-            if (greetings.some(g => command.includes(g))) {
-                const responses = [
-                    "Always a pleasure, Sir. How can I help you today?",
-                    "All core systems operational. What are we working on?",
-                    "Standing by, Sir. Ready for your instructions."
-                ];
-                const reply = responses[Math.floor(Math.random() * responses.length)];
-                respond(reply);
-                speak(reply);
-                return;
-            }
-
-            // Default conversational fallback
-            const fallbackReply = `Processing: "${rawCommand}". I've logged your input, Sir.`;
-            respond(fallbackReply);
-            speak("Understood, Sir.");
+            // Otherwise, send everything else straight to Gemini's brain!
+            queryGemini(rawCommand);
         }
 
         function sendCommand() {
             const inputField = document.getElementById("userInput");
             if (inputField.value.trim() !== "") {
                 processCommand(inputField.value);
+                inputField.value = "";
             }
         }
 
@@ -328,7 +327,7 @@
             const recognition = new SpeechRecognition();
             recognition.lang = "en-US";
             
-            respond("Listening for voice command...");
+            respond("Listening...");
             speak("Listening");
 
             recognition.onresult = function(event) {
@@ -337,7 +336,7 @@
             };
 
             recognition.onerror = function() {
-                respond("Microphone input error.");
+                respond("Microphone error.");
             };
 
             recognition.start();
