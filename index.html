@@ -188,20 +188,7 @@ ADD GOAL
 
 <script>
 
-function speak(text) {
-    if (!('speechSynthesis' in window)) {
-        alert("Speech is not supported in this browser.");
-        return;
-    }
 
-    speechSynthesis.cancel();
-
-    let voice = new SpeechSynthesisUtterance(text);
-    voice.lang = "en-GB";
-    voice.rate = 0.95;
-
-    speechSynthesis.speak(voice);
-}
 
 function respond(text) {
     document.getElementById("response").innerText = text;
@@ -220,7 +207,28 @@ function sendCommand() {
 
     else if (command.includes("youtube")) {
         respond("Opening YouTube.");
-        openSite("https://www.youtube.com");
+        
+        openSitefunction speak(text) {       
+    const speech = new SpeechSynthesisUtterance(text);
+
+    speech.lang = "en-GB";
+    speech.rate = 0.92;
+    speech.pitch = 0.85;
+    speech.volume = 1;
+
+    const voices = window.speechSynthesis.getVoices();
+
+    const daniel = voices.find(voice =>
+        voice.name.toLowerCase().includes("daniel")
+    );
+
+    if (daniel) {
+        speech.voice = daniel;
+    }
+
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(speech);
+}("https://www.youtube.com");
     }
 
     else if (command.includes("google")) {
