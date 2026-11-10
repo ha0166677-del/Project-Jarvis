@@ -9,7 +9,7 @@
             --stark-blue: #00f0ff;
             --stark-gold: #ffb700;
             --stark-bg: #050b14;
-            --stark-panel: rgba(10, 25, 45, 0.75);
+            --stark-panel: rgba(10, 25, 45, 0.85);
             --stark-border: rgba(0, 240, 255, 0.4);
             --stark-alert: #ff3366;
         }
@@ -24,4 +24,331 @@
         body {
             background-color: var(--stark-bg);
             color: var(--stark-blue);
-            min-height: 1
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .hud-header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--stark-blue);
+            padding-bottom: 10px;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .hud-header h1 {
+            font-size: 2rem;
+            letter-spacing: 4px;
+            text-shadow: 0 0 10px var(--stark-blue);
+        }
+
+        .hud-header p {
+            font-size: 0.85rem;
+            color: var(--stark-gold);
+            letter-spacing: 2px;
+            margin-top: 5px;
+        }
+
+        /* Arc Reactor Animation */
+        .reactor-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 15px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .core {
+            width: 40px;
+            height: 40px;
+            background: var(--stark-blue);
+            border-radius: 50%;
+            box-shadow: 0 0 25px var(--stark-blue), inset 0 0 10px #ffffff;
+            animation: pulse 2s infinite alternate;
+        }
+
+        .ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 3px dashed var(--stark-border);
+            border-radius: 50%;
+            animation: spin 10s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            100% { transform: scale(1.05); opacity: 1; }
+        }
+
+        /* Main Panel */
+        .hud-panel {
+            background: var(--stark-panel);
+            border: 1px solid var(--stark-border);
+            border-radius: 10px;
+            padding: 20px;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.15);
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--stark-blue);
+            color: var(--stark-blue);
+            border-radius: 5px;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        input[type="text"]::placeholder {
+            color: rgba(0, 240, 255, 0.4);
+        }
+
+        button {
+            padding: 12px 20px;
+            background: rgba(0, 240, 255, 0.1);
+            color: var(--stark-blue);
+            border: 1px solid var(--stark-blue);
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+
+        button:hover {
+            background: var(--stark-blue);
+            color: var(--stark-bg);
+            box-shadow: 0 0 15px var(--stark-blue);
+        }
+
+        .mic-btn {
+            background: rgba(255, 183, 0, 0.1);
+            color: var(--stark-gold);
+            border-color: var(--stark-gold);
+        }
+
+        .mic-btn:hover {
+            background: var(--stark-gold);
+            color: var(--stark-bg);
+            box-shadow: 0 0 15px var(--stark-gold);
+        }
+
+        /* HUD Screen Output */
+        .output-screen {
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px dashed var(--stark-border);
+            padding: 15px;
+            min-height: 80px;
+            border-radius: 5px;
+            text-align: left;
+            font-family: monospace;
+            font-size: 0.95rem;
+            color: #ffffff;
+            margin-bottom: 15px;
+            word-break: break-word;
+        }
+
+        .section-title {
+            font-size: 0.85rem;
+            color: var(--stark-gold);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            text-align: left;
+        }
+
+        .memory-box {
+            font-size: 0.85rem;
+            color: #a0aec0;
+            text-align: left;
+            max-height: 100px;
+            overflow-y: auto;
+            padding: 5px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="hud-header">
+        <h1>J.A.R.V.I.S.</h1>
+        <p>JUST A RATHER VERY INTELLIGENT SYSTEM // STARK PROTOCOL</p>
+    </div>
+
+    <div class="reactor-container">
+        <div class="ring"></div>
+        <div class="core"></div>
+    </div>
+
+    <div class="hud-panel">
+        <div class="input-group">
+            <input type="text" id="userInput" placeholder="Issue command, e.g., 'open youtube' or 'remember my goal is...'">
+            <button onclick="sendCommand()">SEND</button>
+            <button class="mic-btn" onclick="startListening()">🎤 SPEAK</button>
+        </div>
+
+        <div class="section-title">HUD Output Log</div>
+        <div id="responseBox" class="output-screen">Initializing systems... Online, Sir.</div>
+
+        <div class="section-title">Active Memory & Goals</div>
+        <div id="memoryDisplay" class="memory-box">No active data logs stored yet.</div>
+    </div>
+
+    <script>
+        // Load memory from browser storage on startup
+        let jarvisMemory = JSON.parse(localStorage.getItem('jarvis_memory')) || [];
+        updateMemoryUI();
+
+        function speak(text) {
+            const speech = new SpeechSynthesisUtterance(text);
+            speech.lang = "en-GB";
+            speech.rate = 0.95;
+            speech.pitch = 0.85;
+            speech.volume = 1;
+
+            const voices = window.speechSynthesis.getVoices();
+            const daniel = voices.find(voice => voice.name.toLowerCase().includes("daniel"));
+            if (daniel) {
+                speech.voice = daniel;
+            }
+
+            window.speechSynthesis.cancel();
+            window.speechSynthesis.speak(speech);
+        }
+
+        function respond(message) {
+            document.getElementById("responseBoxinnerText") // safe lookup
+            document.getElementById("responseBox").innerText = `> ${message}`;
+        }
+
+        function updateMemoryUI() {
+            const memBox = document.getElementById("memoryDisplay");
+            if (jarvisMemory.length === 0) {
+                memBox.innerText = "No active data logs stored yet.";
+            } else {
+                memBox.innerHTML = jarvisMemory.map(item => `• ${item}`).join('<br>');
+            }
+        }
+
+        function processCommand(rawCommand) {
+            const command = rawCommand.toLowerCase().trim();
+            document.getElementById("userInput").value = rawCommand;
+
+            if (command.includes("hello") || command.includes("jarvis")) {
+                const reply = "At your service, Sir. All systems are operating at peak efficiency.";
+                respond(reply);
+                speak(reply);
+            }
+            else if (command.includes("youtube")) {
+                const reply = "Opening YouTube interface now, Sir.";
+                respond(reply);
+                speak(reply);
+                window.open("https://www.youtube.com", "_blank");
+            }
+            else if (command.includes("google")) {
+                const reply = "Accessing Google network.";
+                respond(reply);
+                speak(reply);
+                window.open("https://www.google.com", "_blank");
+            }
+            else if (command.startsWith("open ")) {
+                const siteName = command.replace("open ", "").trim();
+                const reply = `Establishing secure connection to ${siteName}, Sir.`;
+                respond(reply);
+                speak(reply);
+                window.open(`https://www.${siteName}.com`, "_blank");
+            }
+            else if (command.startsWith("remember ") || command.startsWith("goal ")) {
+                const dataToStore = rawCommand.replace(/^(remember|goal)\s*/i, "").trim();
+                jarvisMemory.push(dataToStore);
+                localStorage.setItem('jarvis_memory', JSON.stringify(jarvisMemory));
+                updateMemoryUI();
+                const reply = `Logged into my permanent memory banks, Sir: "${dataToStore}"`;
+                respond(reply);
+                speak("Logged to memory banks, Sir.");
+            }
+            else if (command.includes("what do you remember") || command.includes("show goals") || command.includes("memory")) {
+                if (jarvisMemory.length === 0) {
+                    const reply = "My memory banks are currently empty, Sir.";
+                    respond(reply);
+                    speak(reply);
+                } else {
+                    const reply = `Here are your stored logs: ${jarvisMemory.join(', ')}`;
+                    respond(reply);
+                    speak("Recalling your active goals and logs now.");
+                }
+            }
+            else if (command.includes("clear memory") || command.includes("reset memory")) {
+                jarvisMemory = [];
+                localStorage.removeItem('jarvis_memory');
+                updateMemoryUI();
+                const reply = "Memory banks wiped clean, Sir.";
+                respond(reply);
+                speak(reply);
+            }
+            else {
+                const reply = `Command received: "${rawCommand}". Executing standard protocol.`;
+                respond(reply);
+                speak("Processing command.");
+            }
+        }
+
+        function sendCommand() {
+            const inputField = document.getElementById("userInput");
+            if (inputField.value.trim() !== "") {
+                processCommand(inputField.value);
+            }
+        }
+
+        function startListening() {
+            window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!window.SpeechRecognition) {
+                alert("Speech recognition is not supported in this browser. Try Safari or Chrome.");
+                return;
+            }
+
+            const recognition = new SpeechRecognition();
+            recognition.lang = "en-US";
+            
+            respond("Listening for voice input...");
+            speak("Listening");
+
+            recognition.onresult = function(event) {
+                const speechToText = event.results[0][0].transcript;
+                processCommand(speechToText);
+            };
+
+            recognition.onerror = function() {
+                respond("Microphone error or access denied.");
+            };
+
+            recognition.start();
+        }
+    </script>
+</body>
+</html>
