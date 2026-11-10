@@ -206,19 +206,17 @@ function sendCommand() {
     }
 
     else if (command.includes("youtube")) {
-        respond("Opening YouTube.");
+     respond("Opening YouTube.");
 
-      function  openSitefunction speak(text) {       
-     const speech = new SpeechSynthesisUtterance(text);
+function speak(text) {
+    const speech = new SpeechSynthesisUtterance(text);
+    speech.lang = "en-GB";
+    speech.rate = 0.92;
+    speech.pitch = 0.85;
+    speech.volume = 1;
 
-     speech.lang = "en-GB";
-     speech.rate = 0.92;
-     speech.pitch = 0.85;
-     speech.volume = 1;
-
-     const voices = window.speechSynthesis.getVoices();
-
-    const daniel = voices.find(voice =>
+    const voices = window.speechSynthesis.getVoices();
+    const daniel = voices.find(voice => 
         voice.name.toLowerCase().includes("daniel")
     );
 
@@ -228,8 +226,27 @@ function sendCommand() {
 
     window.speechSynthesis.cancel();
     window.speechSynthesis.speak(speech);
-}("https://www.youtube.com");
+}
+
+function sendCommand() {
+    const command = document.getElementById("userInput").value.toLowerCase();
+
+    if (command.includes("hello")) {
+        respond("Hello. I am JARVIS. How may I assist you?");
+        speak("Hello. I am JARVIS.");
     }
+    else if (command.includes("youtube")) {
+        respond("Opening YouTube.");
+        speak("Opening YouTube.");
+        window.open("https://www.youtube.com", "_blank");
+    }
+    else if (command.includes("google")) {
+        respond("Opening Google.");
+        speak("Opening Google.");
+        window.open("https://www.google.com", "_blank");
+    }
+}
+    
 
     else if (command.includes("google")) {
         respond("Opening Google.");
