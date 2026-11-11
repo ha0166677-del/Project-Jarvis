@@ -321,6 +321,14 @@ function processCommand(text) {
     respond("Sir: " + text);
     queryGemini(text);
 }
+        function handleSend() {
+    const inputField = document.getElementById('userInput');
+    const text = inputField.value.trim();
+    if (text) {
+        processCommand(text);
+        inputField.value = ''; 
+    }
+}
         function startListening() {
             window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (!window.SpeechRecognition) {
@@ -345,6 +353,9 @@ function processCommand(text) {
 
             recognition.start();
         }
-    </script>
+    </script><div class="input-container" style="margin-top: 20px;">
+    <input type="text" id="userInput" placeholder="Ask J.A.R.V.I.S..." style="padding: 10px; width: 60%;" onkeydown="if(event.key === 'Enter') handleSend()">
+    <button onclick="handleSend()" style="padding: 10px;">Send</button>
+</div>
 </body>
 </html>
