@@ -315,7 +315,12 @@
                 inputField.value = "";
             }
         }
-
+// Process text from either voice recognition or text input
+function processCommand(text) {
+    if (!text) return;
+    respond("Sir: " + text);
+    queryGemini(text);
+}
         function startListening() {
             window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (!window.SpeechRecognition) {
