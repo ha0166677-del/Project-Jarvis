@@ -182,7 +182,7 @@
 
     <div class="hud-panel">
         <div class="input-group">
-            <input type="text" id="userInput" placeholder="Ask Gemini-JARVIS anything..." onkeydown="if(event.key === 'Enter') sendCommand()">
+            <input type="text" id="userInput" placeholder="Ask Gemini-JARVIS anything..." onkeydown="if(event.key === 'Enter') handleSend()">
             <button onclick="sendCommand()">SEND</button>
             <button class="mic-btn" onclick="startListening()">🎤 SPEAK</button>
         </div>
