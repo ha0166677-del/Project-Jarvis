@@ -308,13 +308,7 @@
             queryGemini(rawCommand);
         }
 
-        function sendCommand() {
-            const inputField = document.getElementById("userInput");
-            if (inputField.value.trim() !== "") {
-                processCommand(inputField.value);
-                inputField.value = "";
-            }
-        }
+        
 // Process text from either voice recognition or text input
 function processCommand(text) {
     if (!text) return;
