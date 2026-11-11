@@ -165,12 +165,12 @@
 
                 const data = await response.json();
 
-                if (data.candidates && data.candidates[0].content.parts[0].text) {
+                if (data.candidates && data.candidates[0] && data.candidates[0].content) {
                     const reply = data.candidates[0].content.parts[0].text;
                     respond("J.A.R.V.I.S.: " + reply);
                     speak(reply);
                 } else {
-                    respond("J.A.R.V.I.S.: Unable to parse response from server.");
+                    respond("J.A.R.V.I.S. Server says: " + JSON.stringify(data));
                 }
             } catch (error) {
                 console.error("Gemini API Error:", error);
